@@ -119,8 +119,10 @@ class Person:
 			return ans
 		return "other occupation"#+ str(code)
 
-Person.ancestry_codes = {"Hispanic": set(range(200,297)),"White": set(range(1,196)),\
-						"Chinese" : set(range(706,719))}
+Person.ancestry_codes = \
+	{"Hispanic": set(range(200,297)),\
+	"White": set(range(1,196)).union(set(range(900,995))),\
+	"Chinese" : set(range(706,719))}
 
 Person.birthplace_codes ={"Hispanic Country": set([200,210,250,300]),\
 						 "USA": set(range(1,100)),\
@@ -133,7 +135,7 @@ Person.occupation_codes = {"Science": set(range(37,155)),\
 
 years = {"0":Year(0)}
 
-with open('usa_00010.csv') as csvfile:
+with open('usa_00011.csv') as csvfile:
 	spamreader = csv.DictReader(csvfile, delimiter=',')
 	#print(spamreader.fieldnames)
 	#spamreader[0]
@@ -150,11 +152,14 @@ test2 = years["2000"]
 
 
 ofile  = open('results.csv', "w", newline = "")
-writer = csv.DictWriter(ofile, ["Group", "other occupation", "Science"], delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-
+params = ["Year","Group", "other occupation", "Science"]
+writer = csv.DictWriter(ofile, params, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+writer.writerow({a:a for a in params})
 for k,year in years.items():
+
 	for row in year.data():
-		print(row)
+		row["Year"] = year.year
+		#print(row)
 		writer.writerow(row)
 
 
