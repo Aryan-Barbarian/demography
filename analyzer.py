@@ -25,8 +25,18 @@ class Year:
 		rows = []
 		for k,v in self.groups.items():
 			dictionary = {"Group":v.name, "Total Population": v.total_population}
-			print(dictionary)
+			#print(dictionary)
 			rows.append(dictionary)
+		return rows
+
+	def average_income_data(self):
+		rows = []
+		for k,v in self.groups.items():
+			#print(v.average_incomes)
+			for occupation,average_income in v.average_incomes.items():
+				#print("Average income:",average_income)
+				dictionary = {"Group":k, "Occupation":occupation, "Average Income":average_income, "Year":self.year}
+				rows.append(dictionary)
 		return rows
 
 class Group:
@@ -34,9 +44,13 @@ class Group:
 	def __init__(self, name):
 		self.name = name
 		self.members = dict()
-		self.totals = dict()
+		self.population_totals = dict()
 		self.total_population = 0
+		self.income_totals = dict()
+
 		self.percentage_vals = False
+		self.average_incomes_vals = False
+
 
 	def add(self, person):
 		self.percentage_vals = False
@@ -44,27 +58,50 @@ class Group:
 		occupation = person.occupation
 		self.total_population += person.weight
 
+
 		if occupation in self.members.keys():
 			self.members[occupation].append(person)
-			self.totals[occupation] += person.weight
+			self.population_totals[occupation] += person.weight
+			self.income_totals[occupation] += person.weight*person.income
 		else:
 			self.members[occupation] = [person]
-			self.totals[occupation] = person.weight
+			self.population_totals[occupation] = person.weight
+			self.income_totals[occupation] = person.weight*person.income
 
 	def generate_percentages(self):
 		self.percentage_vals = {"Group":self.name}
 		#self.percentage_vals = dict()
 
-		for k,v in self.totals.items():
-			self.percentage_vals[k] = v*1.0 / self.total_population
+		for occupation,total_pop in self.population_totals.items():
+			self.percentage_vals[occupation] = total_pop*1.0 / self.total_population
+
+		#print(self.percentage_vals)
+
+	def generate_average_incomes(self):
+		self.average_incomes_vals = dict()
+		#print(self.income_totals)
+		
+		for occupation in self.income_totals.keys():
+			total_income = self.income_totals[occupation]
+			self.average_incomes_vals[occupation] = total_income/self.population_totals[occupation]
+
+		#print(self.average_incomes)
 
 	@property
 	def percentages(self):
 		if self.percentage_vals:
-			return self.percentages
+			return self.average_incomes_vals
 		else:
 			self.generate_percentages()
 			return self.percentage_vals
+
+	@property
+	def average_incomes(self):
+		if self.average_incomes_vals:
+			return self.average_incomes_vals
+		else:
+			self.generate_average_incomes()
+			return self.average_incomes_vals
 
 
 
@@ -84,12 +121,12 @@ class Person:
 
 		self.type = self.find_type()
 		self.weight = float(row["PERWT"])
+		self.income = float(row["INCTOT"])
 
 		
 
 	def find_type(self):
 		
-
 		if self.ancestry == "White":
 			if self.birthplace == "USA":
 				return "Vanilla"
@@ -148,33 +185,50 @@ Person.occupation_codes = \
 
 years = {"0":Year(0)}
 
-with open('usa_00012.csv') as csvfile:
+with open('usa_00016.csv') as csvfile:
 	spamreader = csv.DictReader(csvfile, delimiter=',')
 	#print(spamreader.fieldnames)
 	#spamreader[0]
+	should_stop = False
+	timer = 1000
 	for i in spamreader:
+		timer -= 1
+		if should_stop:
+			break
+		if timer < 0:
+			should_stop = True
+
 		#print(i)
 		if (i["YEAR"] in years.keys()):
+			
 			years[i["YEAR"]].add(i)
+			
 		else:
 			years[i["YEAR"]] = Year(i["YEAR"])
-			print(i["YEAR"])
+			#print(i["YEAR"])
 
 ofile  = open('results.csv', "w", newline = "")
 params = ["Year","Group", "Engineering", "Math and Computational Science","Natural Science","Health","Post-Secondary Teachers","Blue Collar","Other Occupation"]
-writer = csv.DictWriter(ofile, params, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+writer1 = csv.DictWriter(ofile, params, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 writer2 = csv.DictWriter(ofile, ["Group","Total Population","Year"], delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-writer.writerow({a:a for a in params})
+writer3 = csv.DictWriter(ofile, ["Group","Average Income","Occupation","Year"], delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+
+writer1.writeheader()
 for k,year in years.items():
 	for row in year.percentage_data():
 		row["Year"] = year.year
 		#print(row)
-		writer.writerow(row)
-
+		writer1.writerow(row)
+writer2.writeheader()
 for k,year in years.items():
 	for row in year.total_population_data():
 		row["Year"] = year.year
 		writer2.writerow(row)
+writer3.writeheader()
+for k,year in years.items():
+	print(year.average_income_data())
+	for row in year.average_income_data():
+		writer3.writerow(row)
 
 
 
