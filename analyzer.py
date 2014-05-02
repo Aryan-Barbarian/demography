@@ -24,19 +24,31 @@ class Year:
 	def total_population_data(self):
 		rows = []
 		for k,v in self.groups.items():
-			dictionary = {"Group":v.name, "Total Population": v.total_population}
-			print(dictionary)
+			dictionary = {"Group":v.name, "Total Population": v.total_population, "Year":self.year}
+			#print(dictionary)
 			rows.append(dictionary)
+		return rows
+	def wage_data(self):
+		rows = []
+		for k,v in self.groups.items():
+			for occupation,average_wage in v.wages:
+				dictionary = {"Occupation": occupation, "Group":k, "Average Wage":average_wage, "Year":self.year}
+				rows.append(dictionary)
 		return rows
 
 class Group:
+	#all members are of the same group (hispanic descendants, for example)
 	#sorted by occupation
 	def __init__(self, name):
 		self.name = name
 		self.members = dict()
-		self.totals = dict()
+		self.population_totals = dict()
+		self.wage_totals = dict()
+		
+
 		self.total_population = 0
 		self.percentage_vals = False
+		self.wage_vals = False
 
 	def add(self, person):
 		self.percentage_vals = False
@@ -46,30 +58,41 @@ class Group:
 
 		if occupation in self.members.keys():
 			self.members[occupation].append(person)
-			self.totals[occupation] += person.weight
+			self.population_totals[occupation] += person.weight
+			self.wage_totals[occupation] += person.income
 		else:
 			self.members[occupation] = [person]
-			self.totals[occupation] = person.weight
+			self.population_totals[occupation] = person.weight
+			self.wage_totals[occupation] = person.income
 
 	def generate_percentages(self):
 		self.percentage_vals = {"Group":self.name}
-		#self.percentage_vals = dict()
+		
 
 		for k,v in self.totals.items():
 			self.percentage_vals[k] = v*1.0 / self.total_population
+	def generate_wages(self):
+		self.wage_vals = {"Group":self.name}
+
+		for k,v in self.wage_totals.items():
+			self.wage_vals[k] = v / self.population_totals[k]
+
 
 	@property
 	def percentages(self):
 		if self.percentage_vals:
-			return self.percentages
+			return self.percentage_vals
 		else:
 			self.generate_percentages()
 			return self.percentage_vals
 
-
-
-
-
+	@property
+	def wages(self):
+		if self.wage_vals:
+			return self.wage_vals
+		else:
+			self.generate_wages()
+			return self.wage_vals
 
 class Person:
 	def __init__(self,row):
@@ -82,6 +105,7 @@ class Person:
 		occupation_code = int(row["OCC1990"])
 		self.occupation = Person.find_occupation(occupation_code)
 
+		self.income = float(row["INCTOT"])
 		self.type = self.find_type()
 		self.weight = float(row["PERWT"])
 
@@ -148,7 +172,7 @@ Person.occupation_codes = \
 
 years = {"0":Year(0)}
 
-with open('usa_00012.csv') as csvfile:
+with open('usa_00015.csv') as csvfile:
 	spamreader = csv.DictReader(csvfile, delimiter=',')
 	#print(spamreader.fieldnames)
 	#spamreader[0]
@@ -161,20 +185,32 @@ with open('usa_00012.csv') as csvfile:
 			print(i["YEAR"])
 
 ofile  = open('results.csv', "w", newline = "")
-params = ["Year","Group", "Engineering", "Math and Computational Science","Natural Science","Health","Post-Secondary Teachers","Blue Collar","Other Occupation"]
-writer = csv.DictWriter(ofile, params, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-writer2 = csv.DictWriter(ofile, ["Group","Total Population","Year"], delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-writer.writerow({a:a for a in params})
+params1 = ["Year","Group", "Engineering", "Math and Computational Science","Natural Science","Health","Post-Secondary Teachers","Blue Collar","Other Occupation"]
+params2 = ["Group","Total Population","Year"]
+params3 = ["Group","Occupation","Average Income","Year"]
+
+writer1 = csv.DictWriter(ofile, params, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+writer2 = csv.DictWriter(ofile, params2, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+writer3 = csv.DictWriter(ofile, params3, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+
+writer1.writerow({a:a for a in params1})
+writer2.writerow({a:a for a in params2})
+writer3.writerow({a:a for a in params3})
+
 for k,year in years.items():
 	for row in year.percentage_data():
 		row["Year"] = year.year
 		#print(row)
-		writer.writerow(row)
+		writer1.writerow(row)
+
 
 for k,year in years.items():
 	for row in year.total_population_data():
-		row["Year"] = year.year
 		writer2.writerow(row)
+
+for k,year in years.items():
+	for row in year.wage_data():
+		writer3.writerow(row)
 
 
 
