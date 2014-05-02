@@ -15,10 +15,18 @@ class Year:
 			else:
 				self.groups[person.type].add(person)
 
-	def data(self):
+	def percentage_data(self):
 		rows = []
 		for k,v in self.groups.items():
 			rows.append(v.percentages)
+		return rows
+
+	def total_population_data(self):
+		rows = []
+		for k,v in self.groups.items():
+			dictionary = {"Group":v.name, "Total Population": v.total_population}
+			print(dictionary)
+			rows.append(dictionary)
 		return rows
 
 class Group:
@@ -117,7 +125,7 @@ class Person:
 		ans = Person.find(Person.occupation_codes, code)
 		if ans is not None:
 			return ans
-		return "other occupation"#+ str(code)
+		return "Other Occupation"#+ str(code)
 
 Person.ancestry_codes = \
 	{"Hispanic": set(range(200,297)),\
@@ -128,14 +136,19 @@ Person.birthplace_codes ={"Hispanic Country": set([200,210,250,300]),\
 						 "USA": set(range(1,100)),\
 						 "China": {500}}
 
-Person.occupation_codes = {"Science": set(range(37,155)),\
-						 "Engineering": {},\
-						 "Blue Collar": {}}
+Person.occupation_codes = \
+	{\
+	"Engineering": range(44,60),\
+	"Math and Computational Science": range(64,69),\
+	"Natural Science": range(69,84),\
+	"Health":range(84,107),\
+	"Post-Secondary Teachers":range(113,155),\
+	"Blue Collar": range(473,890)}
 	
 
 years = {"0":Year(0)}
 
-with open('usa_00011.csv') as csvfile:
+with open('usa_00012.csv') as csvfile:
 	spamreader = csv.DictReader(csvfile, delimiter=',')
 	#print(spamreader.fieldnames)
 	#spamreader[0]
@@ -145,22 +158,25 @@ with open('usa_00011.csv') as csvfile:
 			years[i["YEAR"]].add(i)
 		else:
 			years[i["YEAR"]] = Year(i["YEAR"])
-
-
-test1 = years["2000"].groups["Hispanic Descendant"]
-test2 = years["2000"]
-
+			print(i["YEAR"])
 
 ofile  = open('results.csv', "w", newline = "")
-params = ["Year","Group", "other occupation", "Science"]
+params = ["Year","Group", "Engineering", "Math and Computational Science","Natural Science","Health","Post-Secondary Teachers","Blue Collar","Other Occupation"]
 writer = csv.DictWriter(ofile, params, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+writer2 = csv.DictWriter(ofile, ["Group","Total Population","Year"], delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 writer.writerow({a:a for a in params})
 for k,year in years.items():
-
-	for row in year.data():
+	for row in year.percentage_data():
 		row["Year"] = year.year
 		#print(row)
 		writer.writerow(row)
+
+for k,year in years.items():
+	for row in year.total_population_data():
+		row["Year"] = year.year
+		writer2.writerow(row)
+
+
 
 
 ofile.close()
