@@ -25,9 +25,20 @@ class Year:
 	def total_population_data(self):
 		rows = []
 		for k,v in self.groups.items():
+<<<<<<< HEAD
 			dictionary = {"Group":v.name, "Total Population": v.total_population}
+=======
+			dictionary = {"Group":v.name, "Total Population": v.total_population, "Year":self.year}
+>>>>>>> d91132817b61519d3dc8b80fd911737da536aee7
 			#print(dictionary)
 			rows.append(dictionary)
+		return rows
+	def wage_data(self):
+		rows = []
+		for k,v in self.groups.items():
+			for occupation,average_wage in v.wages:
+				dictionary = {"Occupation": occupation, "Group":k, "Average Wage":average_wage, "Year":self.year}
+				rows.append(dictionary)
 		return rows
 
 	def average_income_data(self):
@@ -41,17 +52,28 @@ class Year:
 		return rows
 
 class Group:
+	#all members are of the same group (hispanic descendants, for example)
 	#sorted by occupation
 	def __init__(self, name):
 		self.name = name
 		self.members = dict()
 		self.population_totals = dict()
+<<<<<<< HEAD
+=======
+		self.wage_totals = dict()
+		
+
+>>>>>>> d91132817b61519d3dc8b80fd911737da536aee7
 		self.total_population = 0
 		self.income_totals = dict()
 
 		self.percentage_vals = False
+<<<<<<< HEAD
 		self.average_incomes_vals = False
 
+=======
+		self.wage_vals = False
+>>>>>>> d91132817b61519d3dc8b80fd911737da536aee7
 
 	def add(self, person):
 		self.percentage_vals = False
@@ -63,16 +85,25 @@ class Group:
 		if occupation in self.members.keys():
 			self.members[occupation].append(person)
 			self.population_totals[occupation] += person.weight
+<<<<<<< HEAD
 			self.income_totals[occupation] += person.weight*person.income
 		else:
 			self.members[occupation] = [person]
 			self.population_totals[occupation] = person.weight
 			self.income_totals[occupation] = person.weight*person.income
+=======
+			self.wage_totals[occupation] += person.income
+		else:
+			self.members[occupation] = [person]
+			self.population_totals[occupation] = person.weight
+			self.wage_totals[occupation] = person.income
+>>>>>>> d91132817b61519d3dc8b80fd911737da536aee7
 
 	def generate_percentages(self):
 		self.percentage_vals = {"Group":self.name}
-		#self.percentage_vals = dict()
+		
 
+<<<<<<< HEAD
 		for occupation,total_pop in self.population_totals.items():
 			self.percentage_vals[occupation] = total_pop*1.0 / self.total_population
 
@@ -87,16 +118,31 @@ class Group:
 			self.average_incomes_vals[occupation] = total_income/self.population_totals[occupation]
 
 		#print(self.average_incomes)
+=======
+		for k,v in self.totals.items():
+			self.percentage_vals[k] = v*1.0 / self.total_population
+	def generate_wages(self):
+		self.wage_vals = {"Group":self.name}
+
+		for k,v in self.wage_totals.items():
+			self.wage_vals[k] = v / self.population_totals[k]
+
+>>>>>>> d91132817b61519d3dc8b80fd911737da536aee7
 
 	@property
 	def percentages(self):
 		if self.percentage_vals:
+<<<<<<< HEAD
 			return self.average_incomes_vals
+=======
+			return self.percentage_vals
+>>>>>>> d91132817b61519d3dc8b80fd911737da536aee7
 		else:
 			self.generate_percentages()
 			return self.percentage_vals
 
 	@property
+<<<<<<< HEAD
 	def average_incomes(self):
 		if self.average_incomes_vals:
 			return self.average_incomes_vals
@@ -108,6 +154,14 @@ class Group:
 
 
 
+=======
+	def wages(self):
+		if self.wage_vals:
+			return self.wage_vals
+		else:
+			self.generate_wages()
+			return self.wage_vals
+>>>>>>> d91132817b61519d3dc8b80fd911737da536aee7
 
 class Person:
 	def __init__(self,row):
@@ -119,7 +173,12 @@ class Person:
 		self.birthplace = Person.find_birthplace(birthplace_code)
 		occupation_code = int(row["OCC1990"])
 		self.occupation = Person.find_occupation(occupation_code)
+<<<<<<< HEAD
 		self.year = int(row["YEAR"])
+=======
+
+		self.income = float(row["INCTOT"])
+>>>>>>> d91132817b61519d3dc8b80fd911737da536aee7
 		self.type = self.find_type()
 		self.weight = float(row["PERWT"])
 		self.income = float(row["INCTOT"])*inflation_multiplier[self.year]
@@ -186,8 +245,12 @@ Person.occupation_codes = \
 
 years = {"0":Year(0)}
 
+<<<<<<< HEAD
 
 with open('usa_00016.csv') as csvfile:
+=======
+with open('usa_00015.csv') as csvfile:
+>>>>>>> d91132817b61519d3dc8b80fd911737da536aee7
 	spamreader = csv.DictReader(csvfile, delimiter=',')
 	#print(spamreader.fieldnames)
 	#spamreader[0]
@@ -210,6 +273,7 @@ with open('usa_00016.csv') as csvfile:
 			print(i["YEAR"])
 
 ofile  = open('results.csv', "w", newline = "")
+<<<<<<< HEAD
 params = ["Year","Group", "Engineering", "Math and Computational Science","Natural Science","Health","Post-Secondary Teachers","Blue Collar","Other Occupation"]
 writer1 = csv.DictWriter(ofile, params, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 writer2 = csv.DictWriter(ofile, ["Group","Total Population","Year"], delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
@@ -222,14 +286,38 @@ for k,year in years.items():
 		
 		writer1.writerow(row)
 writer2.writeheader()
+=======
+params1 = ["Year","Group", "Engineering", "Math and Computational Science","Natural Science","Health","Post-Secondary Teachers","Blue Collar","Other Occupation"]
+params2 = ["Group","Total Population","Year"]
+params3 = ["Group","Occupation","Average Income","Year"]
+
+writer1 = csv.DictWriter(ofile, params, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+writer2 = csv.DictWriter(ofile, params2, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+writer3 = csv.DictWriter(ofile, params3, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+
+writer1.writerow({a:a for a in params1})
+writer2.writerow({a:a for a in params2})
+writer3.writerow({a:a for a in params3})
+
+for k,year in years.items():
+	for row in year.percentage_data():
+		row["Year"] = year.year
+		#print(row)
+		writer1.writerow(row)
+
+
+>>>>>>> d91132817b61519d3dc8b80fd911737da536aee7
 for k,year in years.items():
 	for row in year.total_population_data():
-		row["Year"] = year.year
 		writer2.writerow(row)
 writer3.writeheader()
 for k,year in years.items():
 	
 	for row in year.average_income_data():
+		writer3.writerow(row)
+
+for k,year in years.items():
+	for row in year.wage_data():
 		writer3.writerow(row)
 
 
