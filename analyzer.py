@@ -1,5 +1,6 @@
 import csv
 
+inflation_multiplier = {1970: 1/0.2329, 1980:1/0.4946 , 1990: 1/0.78, 2000: 0.964 , 2010:  0.764, 2012: 1/1.38}
 class Year:
 	#sorted by year
 	def __init__(self,year_num):
@@ -118,10 +119,10 @@ class Person:
 		self.birthplace = Person.find_birthplace(birthplace_code)
 		occupation_code = int(row["OCC1990"])
 		self.occupation = Person.find_occupation(occupation_code)
-
+		self.year = int(row["YEAR"])
 		self.type = self.find_type()
 		self.weight = float(row["PERWT"])
-		self.income = float(row["INCTOT"])
+		self.income = float(row["INCTOT"])*inflation_multiplier[self.year]
 
 		
 
@@ -185,6 +186,7 @@ Person.occupation_codes = \
 
 years = {"0":Year(0)}
 
+
 with open('usa_00016.csv') as csvfile:
 	spamreader = csv.DictReader(csvfile, delimiter=',')
 	#print(spamreader.fieldnames)
@@ -192,11 +194,11 @@ with open('usa_00016.csv') as csvfile:
 	should_stop = False
 	timer = 1000
 	for i in spamreader:
-		timer -= 1
-		if should_stop:
-			break
-		if timer < 0:
-			should_stop = True
+		"""timer -= 1
+								if should_stop:
+									break
+								if timer < 0:
+									should_stop = True"""
 
 		#print(i)
 		if (i["YEAR"] in years.keys()):
@@ -205,7 +207,7 @@ with open('usa_00016.csv') as csvfile:
 			
 		else:
 			years[i["YEAR"]] = Year(i["YEAR"])
-			#print(i["YEAR"])
+			print(i["YEAR"])
 
 ofile  = open('results.csv', "w", newline = "")
 params = ["Year","Group", "Engineering", "Math and Computational Science","Natural Science","Health","Post-Secondary Teachers","Blue Collar","Other Occupation"]
@@ -217,7 +219,7 @@ writer1.writeheader()
 for k,year in years.items():
 	for row in year.percentage_data():
 		row["Year"] = year.year
-		#print(row)
+		
 		writer1.writerow(row)
 writer2.writeheader()
 for k,year in years.items():
@@ -226,7 +228,7 @@ for k,year in years.items():
 		writer2.writerow(row)
 writer3.writeheader()
 for k,year in years.items():
-	print(year.average_income_data())
+	
 	for row in year.average_income_data():
 		writer3.writerow(row)
 
