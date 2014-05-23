@@ -6,4 +6,11 @@ To use this program, put the .csv file in the same folder as analyzer.py
 
 using terminal (or command prompt) navigate to the same folder as analyzer.py
 
-Type in "python3 -i analyzer.py" and booya
+Type in "python3 -i analyzer.py."
+
+The file name is test.csv
+
+Keep in mind that if you choose to monitor progress, the program will first check the number of rows in the input file which will take some time. 
+
+Output goes into results.csv, which will have three tables: occupation data, population data, and income data.
+
